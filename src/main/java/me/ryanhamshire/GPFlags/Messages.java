@@ -281,5 +281,14 @@ public enum Messages {
     EnabledRestoreGrazedGrass,
     DisabledRestoreGrazedGrass,
 
+    EnabledAllowEndermanMoveBlocks,
+    DisabledAllowEndermanMoveBlocks,
+
+    EnabledAllowEndermanSpawnCobbleWeb,
+    DisabledAllowEndermanSpawnCobbleWeb,
+
+    EnabledAllowSilverfishSpawnCobble,
+    DisabledAllowSilverfishSpawnCobble,
+
     Prefix
 }

@@ -143,6 +143,9 @@ public class GPFlagsConfig {
             this.flagManager.registerFlagDefinition(new FlagDef_NoStructureGrowth(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoBlockFade(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_AllowInfest(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_AllowEndermanMoveBlocks(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_AllowEndermanSpawnCobbleWeb(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_AllowSilverfishSpawnCobble(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoCoralDeath(this.flagManager, plugin));
 
             FlagDef_NoFlight noFlight = new FlagDef_NoFlight(this.flagManager, plugin);
