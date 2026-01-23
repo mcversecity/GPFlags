@@ -376,11 +376,11 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.EnabledAllowEndermanMoveBlocks, "Endermen can now move blocks in this area.", null);
         this.addDefault(defaults, Messages.DisabledAllowEndermanMoveBlocks, "Endermen can no longer move blocks in this area.", null);
 
-        this.addDefault(defaults, Messages.EnabledAllowEndermanSpawnCobbleWeb, "Endermen can now spawn cobwebs in this area.", null);
-        this.addDefault(defaults, Messages.DisabledAllowEndermanSpawnCobbleWeb, "Endermen can no longer spawn cobwebs in this area.", null);
+        this.addDefault(defaults, Messages.EnabledAllowEndermanSpawnCobweb, "Endermen can now spawn cobwebs in this area.", null);
+        this.addDefault(defaults, Messages.DisabledAllowEndermanSpawnCobweb, "Endermen can no longer spawn cobwebs in this area.", null);
 
-        this.addDefault(defaults, Messages.EnabledAllowSilverfishSpawnCobble, "Silverfish can now spawn cobwebs in this area.", null);
-        this.addDefault(defaults, Messages.DisabledAllowSilverfishSpawnCobble, "Silverfish can no longer spawn cobwebs in this area.", null);
+        this.addDefault(defaults, Messages.EnabledAllowSilverfishSpawnCobweb, "Silverfish can now spawn cobwebs in this area.", null);
+        this.addDefault(defaults, Messages.DisabledAllowSilverfishSpawnCobweb, "Silverfish can no longer spawn cobwebs in this area.", null);
 
         this.addDefault(defaults, Messages.EnableNoCropTrampling, "Disabled crop trampling in this area.", null);
         this.addDefault(defaults, Messages.DisableNoCropTrampling, "Enabled crop trampling in this area.", null);

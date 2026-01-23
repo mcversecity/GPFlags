@@ -284,11 +284,11 @@ public enum Messages {
     EnabledAllowEndermanMoveBlocks,
     DisabledAllowEndermanMoveBlocks,
 
-    EnabledAllowEndermanSpawnCobbleWeb,
-    DisabledAllowEndermanSpawnCobbleWeb,
+    EnabledAllowEndermanSpawnCobweb,
+    DisabledAllowEndermanSpawnCobweb,
 
-    EnabledAllowSilverfishSpawnCobble,
-    DisabledAllowSilverfishSpawnCobble,
+    EnabledAllowSilverfishSpawnCobweb,
+    DisabledAllowSilverfishSpawnCobweb,
 
     Prefix
 }

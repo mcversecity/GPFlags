@@ -11,20 +11,20 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
  * This allows cobweb spawning even when the global "EndermenMoveBlocks: false" is set.
  * When set, endermen can place cobwebs (from weaving enchantment) in the claim.
  */
-public class FlagDef_AllowEndermanSpawnCobbleWeb extends FlagDefinition {
+public class FlagDef_AllowEndermanSpawnCobweb extends FlagDefinition {
 
-    public FlagDef_AllowEndermanSpawnCobbleWeb(FlagManager manager, GPFlags plugin) {
+    public FlagDef_AllowEndermanSpawnCobweb(FlagManager manager, GPFlags plugin) {
         super(manager, plugin);
     }
 
     @Override
     public String getName() {
-        return "AllowEndermanSpawnCobbleWeb";
+        return "AllowEndermanSpawnCobweb";
     }
 
     @Override
     public MessageSpecifier getSetMessage(String parameters) {
-        return new MessageSpecifier(Messages.EnabledAllowEndermanSpawnCobbleWeb);
+        return new MessageSpecifier(Messages.EnabledAllowEndermanSpawnCobweb);
     }
 
     @EventHandler
@@ -41,6 +41,6 @@ public class FlagDef_AllowEndermanSpawnCobbleWeb extends FlagDefinition {
 
     @Override
     public MessageSpecifier getUnSetMessage() {
-        return new MessageSpecifier(Messages.DisabledAllowEndermanSpawnCobbleWeb);
+        return new MessageSpecifier(Messages.DisabledAllowEndermanSpawnCobweb);
     }
 }

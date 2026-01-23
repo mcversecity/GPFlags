@@ -11,20 +11,20 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
  * This allows cobweb spawning even when the AllowInfest flag is false.
  * When set, silverfish can place cobwebs (from weaving enchantment) in the claim.
  */
-public class FlagDef_AllowSilverfishSpawnCobble extends FlagDefinition {
+public class FlagDef_AllowSilverfishSpawnCobweb extends FlagDefinition {
 
-    public FlagDef_AllowSilverfishSpawnCobble(FlagManager manager, GPFlags plugin) {
+    public FlagDef_AllowSilverfishSpawnCobweb(FlagManager manager, GPFlags plugin) {
         super(manager, plugin);
     }
 
     @Override
     public String getName() {
-        return "AllowSilverfishSpawnCobble";
+        return "AllowSilverfishSpawnCobweb";
     }
 
     @Override
     public MessageSpecifier getSetMessage(String parameters) {
-        return new MessageSpecifier(Messages.EnabledAllowSilverfishSpawnCobble);
+        return new MessageSpecifier(Messages.EnabledAllowSilverfishSpawnCobweb);
     }
 
     @EventHandler
@@ -41,6 +41,6 @@ public class FlagDef_AllowSilverfishSpawnCobble extends FlagDefinition {
 
     @Override
     public MessageSpecifier getUnSetMessage() {
-        return new MessageSpecifier(Messages.DisabledAllowSilverfishSpawnCobble);
+        return new MessageSpecifier(Messages.DisabledAllowSilverfishSpawnCobweb);
     }
 }
