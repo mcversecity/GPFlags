@@ -87,13 +87,20 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
 
         // Get nearby players within 320 blocks and send them the message
         final String finalMessage = formattedMessage;
+        int recipientCount = 0;
         for (Player recipient : plugin.getServer().getOnlinePlayers()) {
             if (recipient.getWorld().equals(player.getWorld())) {
                 double distance = recipient.getLocation().distance(player.getLocation());
                 if (distance <= 320) {
                     recipient.sendMessage(finalMessage);
+                    recipientCount++;
                 }
             }
+        }
+
+        // Notify player if no one else heard them
+        if (recipientCount == 1) {
+            MessagingUtil.sendMessage(player, TextMode.Err, "There is no one around to hear you.");
         }
     }
 
