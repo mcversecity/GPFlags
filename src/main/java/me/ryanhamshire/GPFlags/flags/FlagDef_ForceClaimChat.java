@@ -82,6 +82,9 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         // Translate color codes
         formattedMessage = ChatColor.translateAlternateColorCodes('&', formattedMessage);
 
+        // Log to console
+        plugin.getLogger().info(ChatColor.stripColor(formattedMessage));
+
         // Get nearby players within 320 blocks and send them the message
         final String finalMessage = formattedMessage;
         for (Player recipient : plugin.getServer().getOnlinePlayers()) {
