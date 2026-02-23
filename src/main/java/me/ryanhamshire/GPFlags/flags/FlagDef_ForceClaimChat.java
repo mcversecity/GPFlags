@@ -100,7 +100,7 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
 
         // Notify player if no one else heard them
         if (recipientCount == 1) {
-            MessagingUtil.sendMessage(player, TextMode.Err, "There is no one around to hear you.");
+            player.sendMessage("There is no one around to hear you.");
         }
     }
 
