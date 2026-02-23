@@ -7,6 +7,7 @@ import me.ryanhamshire.GPFlags.GPFlagsConfig;
 import me.ryanhamshire.GPFlags.MessageSpecifier;
 import me.ryanhamshire.GPFlags.Messages;
 import me.ryanhamshire.GPFlags.TextMode;
+import me.ryanhamshire.GPFlags.hooks.PlaceholderApiHook;
 import me.ryanhamshire.GPFlags.util.MessagingUtil;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
@@ -37,6 +38,7 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         String message = event.getMessage();
+        String prefix = "";
 
         // Check if player is trying to bypass local chat with "!" prefix
         if (message.startsWith("!")) {
@@ -61,10 +63,10 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         // Get the local chat format from config
         String format = GPFlagsConfig.FORCE_LOCAL_CHAT_FORMAT;
 
-        // Replace placeholders
-        String formattedMessage = format.replace("%displayname%", player.getDisplayName())
-                .replace("%player%", player.getName())
-                .replace("%message%", message);
+        // Replace custom placeholders first (before PAPI)
+        String formattedMessage = format
+                .replace("%message%", message)
+                .replace("%prefix%", prefix);
 
         // Replace claim number if available
         if (claim != null) {
@@ -72,6 +74,9 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         } else {
             formattedMessage = formattedMessage.replace("%claimnumber%", "wilderness");
         }
+
+        // Use PlaceholderAPI for all other placeholders
+        formattedMessage = PlaceholderApiHook.addPlaceholders(player, formattedMessage);
 
         // Translate color codes
         formattedMessage = ChatColor.translateAlternateColorCodes('&', formattedMessage);
