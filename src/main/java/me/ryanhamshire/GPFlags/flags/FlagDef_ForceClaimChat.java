@@ -66,7 +66,8 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         // Replace custom placeholders first (before PAPI)
         String formattedMessage = format
                 .replace("%message%", message)
-                .replace("%prefix%", prefix);
+                .replace("%prefix%", prefix)
+                .replace("%displayname%", player.getDisplayName());
 
         // Replace claim number if available
         if (claim != null) {
