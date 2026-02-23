@@ -28,6 +28,7 @@ public class GPFlagsConfig {
     private final FlagManager flagManager;
 
     public static boolean LOG_ENTER_EXIT_COMMANDS = true;
+    public static String FORCE_LOCAL_CHAT_FORMAT = "[%claimnumber%] %displayname%: %message%";
 
     public GPFlagsConfig(GPFlags plugin) {
         this.plugin = plugin;
@@ -44,6 +45,11 @@ public class GPFlagsConfig {
 
         LOG_ENTER_EXIT_COMMANDS = inConfig.getBoolean("Settings.Log Enter/Exit Messages To Console", true);
         outConfig.set("Settings.Log Enter/Exit Messages To Console", LOG_ENTER_EXIT_COMMANDS);
+
+        // ForceClaimChat flag configuration
+        FORCE_LOCAL_CHAT_FORMAT = inConfig.getString("force-local-chat.local-format",
+                "[%claimnumber%] %displayname%: %message%");
+        outConfig.set("force-local-chat.local-format", FORCE_LOCAL_CHAT_FORMAT);
 
         List<World> worlds = plugin.getServer().getWorlds();
         ArrayList<String> worldSettingsKeys = new ArrayList<>();
@@ -206,6 +212,7 @@ public class GPFlagsConfig {
 
             this.flagManager.registerFlagDefinition(new FlagDef_AllowVillagerTrading(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_RestoreGrazedGrass(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_ForceClaimChat(this.flagManager, plugin));
 
             try {
                 Class.forName("org.bukkit.event.raid.RaidTriggerEvent");

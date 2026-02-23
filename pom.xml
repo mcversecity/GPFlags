@@ -6,7 +6,7 @@
 
     <groupId>me.ryanhamshire</groupId>
     <artifactId>GPFlags</artifactId>
-    <version>5.13.8.${build.number}</version>
+    <version>5.13.8.1</version>
 
     <properties>
 <!--        this is the real java version used for compilation-->
@@ -17,7 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--This is used to show the build number for jenkins.-->
         <!--suppress UnresolvedMavenProperty -->
-        <build.number>${env.BUILD_NUMBER}</build.number>
+        <build.number>1</build.number>
     </properties>
 
     <repositories>

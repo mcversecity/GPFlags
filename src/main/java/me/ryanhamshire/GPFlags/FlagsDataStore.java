@@ -405,6 +405,10 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.EnabledRestoreGrazedGrass, "Grass will now immediiately regrow after being grazed by sheep.", null);
         this.addDefault(defaults, Messages.DisabledRestoreGrazedGrass, "Grass will no longer immediately regrow after being grazed by sheep.", null);
 
+        this.addDefault(defaults, Messages.EnabledForceClaimChat, "Local chat is now enabled in this claim. Messages will only be sent to players within 320 blocks. Use '!' prefix to bypass.", null);
+        this.addDefault(defaults, Messages.DisabledForceClaimChat, "Local chat is now disabled in this claim.", null);
+        this.addDefault(defaults, Messages.ForceClaimChatNotification, "<yellow>Local chat is active in this claim. Messages are sent to players within 320 blocks. Use <white>!<yellow> to send globally.", null);
+
         //load the config file
         File file = new File(messagesFilePath);
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);

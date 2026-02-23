@@ -290,5 +290,9 @@ public enum Messages {
     EnabledAllowSilverfishSpawnCobweb,
     DisabledAllowSilverfishSpawnCobweb,
 
+    EnabledForceClaimChat,
+    DisabledForceClaimChat,
+    ForceClaimChatNotification,
+
     Prefix
 }
