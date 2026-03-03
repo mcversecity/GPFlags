@@ -161,6 +161,7 @@ public class GPFlagsConfig {
             this.flagManager.registerFlagDefinition(new FlagDef_TrappedDestination(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoLootProtection(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoEnderPearl(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_NoWindCharge(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoExpiration(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoLeafDecay(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoPetDamage(this.flagManager, plugin));

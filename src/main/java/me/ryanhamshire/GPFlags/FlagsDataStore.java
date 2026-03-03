@@ -181,6 +181,11 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.NoEnderPearlInWorld, "{0}, you cannot use enderpearls in this world",
                 "0: event player");
 
+        this.addDefault(defaults, Messages.EnableNoWindCharge, "Now blocking wind charge usage in this area.", null);
+        this.addDefault(defaults, Messages.DisableNoWindCharge, "Stopped blocking wind charge usage in this area.", null);
+        this.addDefault(defaults, Messages.NoWindChargeInClaim, "{0}, you cannot use wind charges in {1}'s claim",
+                "0: event player, 1: owner of claim");
+
         this.addDefault(defaults, Messages.EnableNoMcMMOSkills, "Now blocking McMMO skill use in this area.", null);
         this.addDefault(defaults, Messages.DisableNoMcMMOSkills, "Stopped blocking McMMO skill use in this area.", null);
 
