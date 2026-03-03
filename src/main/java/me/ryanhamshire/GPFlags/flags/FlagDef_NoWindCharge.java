@@ -55,11 +55,9 @@ public class FlagDef_NoWindCharge extends FlagDefinition {
 
         // Send message to player
         String owner = claim.getOwnerName();
-        String playerName = player.getName();
 
         String msg = new FlagsDataStore().getMessage(Messages.NoWindChargeInClaim);
-        msg = msg.replace("{p}", playerName).replace("{o}", owner);
-        msg = msg.replace("{0}", playerName).replace("{1}", owner);
+        msg = msg.replace("{o}", owner).replace("{0}", owner);
         MessagingUtil.sendMessage(player, TextMode.Warn + msg);
     }
 
