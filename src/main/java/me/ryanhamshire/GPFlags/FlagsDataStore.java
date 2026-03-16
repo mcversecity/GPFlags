@@ -186,6 +186,15 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.NoWindChargeInClaim, "You cannot use wind charges in {0}'s claim",
                 "0: owner of claim");
 
+        this.addDefault(defaults, Messages.EnableMinecartSpeed, "Minecart speed multiplier set to {0} ({1}x speed).",
+                "0: speed value (10-500), 1: multiplier (0.1-5.0)");
+        this.addDefault(defaults, Messages.DisableMinecartSpeed, "Minecart speed returned to vanilla (1.0x).", null);
+        this.addDefault(defaults, Messages.MinecartSpeedInvalidValue, "Please specify a speed value between 10 and 500 (10=0.1x, 100=vanilla, 500=5.0x).", null);
+        this.addDefault(defaults, Messages.MinecartSpeedOutOfRange, "Speed value must be between {0} and {1}.",
+                "0: minimum value, 1: maximum value");
+        this.addDefault(defaults, Messages.MinecartSpeedPermissionDenied, "Your permissions only allow speeds between {0} and {1}.",
+                "0: minimum allowed, 1: maximum allowed");
+
         this.addDefault(defaults, Messages.EnableNoMcMMOSkills, "Now blocking McMMO skill use in this area.", null);
         this.addDefault(defaults, Messages.DisableNoMcMMOSkills, "Stopped blocking McMMO skill use in this area.", null);
 
