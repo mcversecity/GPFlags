@@ -171,6 +171,9 @@ public class FlagsDataStore {
 
         this.addDefault(defaults, Messages.EnableNoExpiration, "Claims here will never expire.", null);
         this.addDefault(defaults, Messages.DisableNoExpiration, "Stopped blocking claim expiration here..", null);
+        this.addDefault(defaults, Messages.SetClaimDescription, "Claim description set to: {0}", "0: description");
+        this.addDefault(defaults, Messages.UnsetClaimDescription, "Claim description removed.", null);
+        this.addDefault(defaults, Messages.ClaimDescriptionTooLong, "Claim description cannot exceed {0} characters.", "0: max length");
 
         this.addDefault(defaults, Messages.EnableNoEnderPearl, "Now blocking ender pearl teleportation to/from this area.", null);
         this.addDefault(defaults, Messages.DisableNoEnderPearl, "Stopped blocking ender pearl teleportation to/from this area.", null);

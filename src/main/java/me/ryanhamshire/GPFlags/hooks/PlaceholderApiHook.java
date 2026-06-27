@@ -7,6 +7,7 @@ import me.ryanhamshire.GPFlags.GPFlags;
 import me.ryanhamshire.GPFlags.Messages;
 import me.ryanhamshire.GPFlags.TextMode;
 import me.ryanhamshire.GPFlags.flags.FlagDefinition;
+import me.ryanhamshire.GPFlags.util.ClaimDescriptionUtil;
 import me.ryanhamshire.GPFlags.util.MessagingUtil;
 import me.ryanhamshire.GPFlags.util.Util;
 import me.ryanhamshire.GriefPrevention.Claim;
@@ -100,6 +101,14 @@ public class PlaceholderApiHook extends PlaceholderExpansion {
             Flag flag = plugin.getFlagManager().getEffectiveFlag(player.getLocation(), flagName, claim);
             if (flag == null) return "No";
             return "Yes";
+        }
+        if (identifier.equals("claimdescription")) {
+            PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
+            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
+            if (claim == null) return "";
+            World world = player.getWorld();
+            String desc = ClaimDescriptionUtil.getEffectiveDescription(plugin.getFlagManager(), claim, world);
+            return desc != null ? desc : "";
         }
         return null;
     }

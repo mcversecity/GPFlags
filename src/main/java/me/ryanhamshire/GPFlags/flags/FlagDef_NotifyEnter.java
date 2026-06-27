@@ -1,6 +1,7 @@
 package me.ryanhamshire.GPFlags.flags;
 
 import me.ryanhamshire.GPFlags.*;
+import me.ryanhamshire.GPFlags.util.ClaimDescriptionUtil;
 import me.ryanhamshire.GPFlags.util.MessagingUtil;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
@@ -8,6 +9,7 @@ import me.ryanhamshire.GriefPrevention.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,7 +55,9 @@ public class FlagDef_NotifyEnter extends PlayerMovementFlagDefinition {
         if (owner.getName().equals(player.getName())) return;
         String param = flag.parameters;
         if (param == null || param.isEmpty()) {
-            param = "claim " + claim.getID();
+            World world = claim.getLesserBoundaryCorner().getWorld();
+            param = ClaimDescriptionUtil.buildDefaultNotifyEnterLabel(
+                    claim, world, GPFlags.getInstance().getFlagManager());
         }
         MessagingUtil.sendMessage(owner, TextMode.Info, Messages.NotifyEnter, player.getName(), param);
 

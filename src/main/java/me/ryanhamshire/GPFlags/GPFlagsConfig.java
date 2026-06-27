@@ -29,6 +29,7 @@ public class GPFlagsConfig {
 
     public static boolean LOG_ENTER_EXIT_COMMANDS = true;
     public static String FORCE_LOCAL_CHAT_FORMAT = "[%claimnumber%] %displayname%: %message%";
+    public static int CLAIM_DESCRIPTION_MAX_LENGTH = 64;
 
     public GPFlagsConfig(GPFlags plugin) {
         this.plugin = plugin;
@@ -45,6 +46,9 @@ public class GPFlagsConfig {
 
         LOG_ENTER_EXIT_COMMANDS = inConfig.getBoolean("Settings.Log Enter/Exit Messages To Console", true);
         outConfig.set("Settings.Log Enter/Exit Messages To Console", LOG_ENTER_EXIT_COMMANDS);
+
+        CLAIM_DESCRIPTION_MAX_LENGTH = inConfig.getInt("Settings.Claim Description Max Length", 64);
+        outConfig.set("Settings.Claim Description Max Length", CLAIM_DESCRIPTION_MAX_LENGTH);
 
         // ForceClaimChat flag configuration
         FORCE_LOCAL_CHAT_FORMAT = inConfig.getString("force-local-chat.local-format",
@@ -159,6 +163,7 @@ public class GPFlagsConfig {
             this.flagManager.registerFlagDefinition(noFlight);
             
             this.flagManager.registerFlagDefinition(new FlagDef_TrappedDestination(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_ClaimDescription(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoLootProtection(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoEnderPearl(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoWindCharge(this.flagManager, plugin));

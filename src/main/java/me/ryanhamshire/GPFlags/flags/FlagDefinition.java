@@ -49,6 +49,10 @@ public abstract class FlagDefinition implements Listener {
 
     public abstract MessageSpecifier getUnSetMessage();
 
+    public String normalizeParameters(String parameters, @Nullable CommandSender sender) {
+        return parameters;
+    }
+
     public List<FlagType> getFlagType() {
         return Arrays.asList(FlagType.CLAIM, FlagType.DEFAULT, FlagType.WORLD, FlagType.SERVER);
     }

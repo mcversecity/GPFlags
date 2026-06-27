@@ -119,6 +119,7 @@ public class FlagManager {
         if (isActive) {
             result = def.validateParameters(friendlyParameters.toString(), sender);
             if (!result.success) return result;
+            internalParameters = new StringBuilder(def.normalizeParameters(friendlyParameters.toString(), sender));
         } else {
             result = new SetFlagResult(true, def.getUnSetMessage());
         }

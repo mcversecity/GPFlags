@@ -523,3 +523,9 @@ permissions:
     default: op
     children:
       gpflags.flag.*: true
+  gpflags.flag.claimdescription:
+    description: Allows setting the ClaimDescription flag on claims.
+    default: op
+  gpflags.flag.claimdescription.placeholders:
+    description: Allows PlaceholderAPI tokens (%...%) in ClaimDescription values when setting the flag.
+    default: op
