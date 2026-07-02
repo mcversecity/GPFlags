@@ -1,11 +1,13 @@
 package me.ryanhamshire.GPFlags.flags;
 
 import me.ryanhamshire.GPFlags.*;
+import me.ryanhamshire.GPFlags.util.ClaimDescriptionUtil;
 import me.ryanhamshire.GPFlags.util.MessagingUtil;
 import me.ryanhamshire.GriefPrevention.Claim;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +51,9 @@ public class FlagDef_NotifyExit extends PlayerMovementFlagDefinition {
         if (owner.getName().equals(player.getName())) return;
         String param = flag.parameters;
         if (param == null || param.isEmpty()) {
-            param = "claim " + claim.getID();
+            World world = claim.getLesserBoundaryCorner().getWorld();
+            param = ClaimDescriptionUtil.buildDefaultNotifyClaimLabel(
+                    claim, world, GPFlags.getInstance().getFlagManager());
         }
         MessagingUtil.sendMessage(owner, TextMode.Info, Messages.NotifyExit, player.getName(), param);
 

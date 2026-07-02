@@ -56,10 +56,10 @@ public final class ClaimDescriptionUtil {
     }
 
     /**
-     * Build the default NotifyEnter label when no custom NotifyEnter params are set.
+     * Build the default notify claim label when no custom NotifyEnter/NotifyExit params are set.
      * Always includes the claim ID; appends the description in parentheses when present.
      */
-    public static String buildDefaultNotifyEnterLabel(@NotNull Claim claim, @NotNull World world, @NotNull FlagManager flagManager) {
+    public static String buildDefaultNotifyClaimLabel(@NotNull Claim claim, @NotNull World world, @NotNull FlagManager flagManager) {
         String label = "claim " + claim.getID();
         String description = getEffectiveDescription(flagManager, claim, world);
         if (description != null) {

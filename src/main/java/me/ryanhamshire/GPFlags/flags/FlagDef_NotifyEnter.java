@@ -56,7 +56,7 @@ public class FlagDef_NotifyEnter extends PlayerMovementFlagDefinition {
         String param = flag.parameters;
         if (param == null || param.isEmpty()) {
             World world = claim.getLesserBoundaryCorner().getWorld();
-            param = ClaimDescriptionUtil.buildDefaultNotifyEnterLabel(
+            param = ClaimDescriptionUtil.buildDefaultNotifyClaimLabel(
                     claim, world, GPFlags.getInstance().getFlagManager());
         }
         MessagingUtil.sendMessage(owner, TextMode.Info, Messages.NotifyEnter, player.getName(), param);
