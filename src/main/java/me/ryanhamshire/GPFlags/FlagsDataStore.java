@@ -292,6 +292,13 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.EnabledAllowBlockExplosions, "Blocks will now explode in this region.", null);
         this.addDefault(defaults, Messages.DisabledAllowBlockExplosions, "Blocks will no longer explode in this region.", null);
 
+        this.addDefault(defaults, Messages.EnabledAllowCrossClaimFluidFlow, "Water and lava may now flow across this claim's borders.", null);
+        this.addDefault(defaults, Messages.DisabledAllowCrossClaimFluidFlow, "Water and lava will no longer flow across this claim's borders.", null);
+        this.addDefault(defaults, Messages.EnabledAllowCrossClaimPistons, "Pistons may now push and pull blocks across this claim's borders.", null);
+        this.addDefault(defaults, Messages.DisabledAllowCrossClaimPistons, "Pistons will no longer push or pull blocks across this claim's borders.", null);
+        this.addDefault(defaults, Messages.EnabledAllowCrossClaimDispensers, "Dispensers may now dispense across this claim's borders.", null);
+        this.addDefault(defaults, Messages.DisabledAllowCrossClaimDispensers, "Dispensers will no longer dispense across this claim's borders.", null);
+
         this.addDefault(defaults, Messages.NoOwnerFlag, "You cannot set both OwnerFly and OwnerMemberFly flags in one claim.", null);
 
         this.addDefault(defaults, Messages.ChangeBiomeSet, "The biome in this claim has been set to {0}. Relog to see the changes.", "0: Biome");
