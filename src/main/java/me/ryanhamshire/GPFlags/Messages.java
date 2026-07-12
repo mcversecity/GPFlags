@@ -311,5 +311,11 @@ public enum Messages {
     DisabledForceClaimChat,
     ForceClaimChatNotification,
 
+    EnableKitPvPSword1,
+    DisableKitPvPSword1,
+    KitPvPSword1Violation,
+    KitPvPSword1Requirements,
+    KitPvPSword1Enter,
+
     Prefix
 }

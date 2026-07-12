@@ -433,6 +433,12 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.DisabledForceClaimChat, "Local chat is now disabled in this claim.", null);
         this.addDefault(defaults, Messages.ForceClaimChatNotification, "<yellow>Local chat is active in this claim. Messages are sent to players within 320 blocks. Use <white>!<yellow> to send globally.", null);
 
+        this.addDefault(defaults, Messages.EnableKitPvPSword1, "Kit PvP (Sword 1) is now enforced in this claim.", null);
+        this.addDefault(defaults, Messages.DisableKitPvPSword1, "Kit PvP (Sword 1) is no longer enforced in this claim.", null);
+        this.addDefault(defaults, Messages.KitPvPSword1Violation, "You don't meet the Kit Requirements for this area.", null);
+        this.addDefault(defaults, Messages.KitPvPSword1Requirements, "Allowed: Diamond/Iron/Copper/Leather armor. Diamond/Iron/Copper/Wood/Stone swords & axes. Shield (offhand). No Netherite. No Elytra.", null);
+        this.addDefault(defaults, Messages.KitPvPSword1Enter, "This area uses Kit PvP (Sword 1). {0}", "0: kit requirements");
+
         //load the config file
         File file = new File(messagesFilePath);
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);

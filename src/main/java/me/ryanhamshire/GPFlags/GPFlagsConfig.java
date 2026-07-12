@@ -223,6 +223,7 @@ public class GPFlagsConfig {
             this.flagManager.registerFlagDefinition(new FlagDef_AllowVillagerTrading(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_RestoreGrazedGrass(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_ForceClaimChat(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_KitPvPSword1(this.flagManager, plugin));
 
             try {
                 Class.forName("org.bukkit.event.raid.RaidTriggerEvent");
