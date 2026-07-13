@@ -310,6 +310,8 @@ public enum Messages {
     EnabledForceClaimChat,
     DisabledForceClaimChat,
     ForceClaimChatNotification,
+    SetForceClaimChatPrefix,
+    UnsetForceClaimChatPrefix,
 
     EnableKitPvPSword1,
     DisableKitPvPSword1,

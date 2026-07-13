@@ -38,15 +38,9 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         String message = event.getMessage();
-        String prefix = "";
 
-        // Check if player is trying to bypass local chat with "!" prefix
+        // Bypass local chat with "!" prefix; keep the "!" in the global message
         if (message.startsWith("!")) {
-            Flag flag = this.getFlagInstanceAtLocation(player.getLocation(), player);
-            if (flag != null) {
-                // Remove the "!" prefix and let the message go through normally
-                event.setMessage(message.substring(1));
-            }
             return;
         }
 
@@ -60,6 +54,20 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         // Get the claim for formatting
         Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, null);
 
+        // Custom prefix replaces the default [%claimnumber%] slot
+        FlagDefinition prefixDef = this.plugin.getFlagManager().getFlagDefinitionByName("ForceClaimChatPrefix");
+        Flag prefixFlag = prefixDef != null
+                ? prefixDef.getFlagInstanceAtLocation(player.getLocation(), player)
+                : null;
+        String prefix;
+        if (prefixFlag != null) {
+            prefix = prefixFlag.parameters;
+        } else if (claim != null) {
+            prefix = "[" + claim.getID() + "]";
+        } else {
+            prefix = "[wilderness]";
+        }
+
         // Get the local chat format from config
         String format = GPFlagsConfig.FORCE_LOCAL_CHAT_FORMAT;
 
@@ -69,7 +77,7 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
                 .replace("%prefix%", prefix)
                 .replace("%displayname%", player.getDisplayName());
 
-        // Replace claim number if available
+        // Replace claim number if available (for custom formats that still use it)
         if (claim != null) {
             formattedMessage = formattedMessage.replace("%claimnumber%", String.valueOf(claim.getID()));
         } else {

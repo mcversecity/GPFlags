@@ -28,7 +28,7 @@ public class GPFlagsConfig {
     private final FlagManager flagManager;
 
     public static boolean LOG_ENTER_EXIT_COMMANDS = true;
-    public static String FORCE_LOCAL_CHAT_FORMAT = "[%claimnumber%] %displayname%: %message%";
+    public static String FORCE_LOCAL_CHAT_FORMAT = "%prefix% %displayname%: %message%";
     public static int CLAIM_DESCRIPTION_MAX_LENGTH = 64;
 
     public GPFlagsConfig(GPFlags plugin) {
@@ -52,7 +52,7 @@ public class GPFlagsConfig {
 
         // ForceClaimChat flag configuration
         FORCE_LOCAL_CHAT_FORMAT = inConfig.getString("force-local-chat.local-format",
-                "[%claimnumber%] %displayname%: %message%");
+                "%prefix% %displayname%: %message%");
         outConfig.set("force-local-chat.local-format", FORCE_LOCAL_CHAT_FORMAT);
 
         List<World> worlds = plugin.getServer().getWorlds();
@@ -223,6 +223,7 @@ public class GPFlagsConfig {
             this.flagManager.registerFlagDefinition(new FlagDef_AllowVillagerTrading(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_RestoreGrazedGrass(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_ForceClaimChat(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_ForceClaimChatPrefix(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_KitPvPSword1(this.flagManager, plugin));
 
             try {
