@@ -436,7 +436,7 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.EnableKitPvPSword1, "Kit PvP (Sword 1) is now enforced in this claim.", null);
         this.addDefault(defaults, Messages.DisableKitPvPSword1, "Kit PvP (Sword 1) is no longer enforced in this claim.", null);
         this.addDefault(defaults, Messages.KitPvPSword1Violation, "You don't meet the Kit Requirements for this area.", null);
-        this.addDefault(defaults, Messages.KitPvPSword1Requirements, "Allowed: Diamond/Iron/Copper/Leather armor. Diamond/Iron/Copper/Wood/Stone swords & axes. Shield (offhand). No Netherite. No Elytra.", null);
+        this.addDefault(defaults, Messages.KitPvPSword1Requirements, "Allowed: Diamond/Iron/Copper/Leather armor. Diamond/Iron/Copper/Wood/Stone swords. Shield (offhand). No Netherite. No Elytra. No axes.", null);
         this.addDefault(defaults, Messages.KitPvPSword1Enter, "This area uses Kit PvP (Sword 1). {0}", "0: kit requirements");
 
         //load the config file

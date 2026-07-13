@@ -7,7 +7,6 @@ import org.bukkit.inventory.PlayerInventory;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Set;
 
 public final class KitPvPSword1Rules {
@@ -26,10 +25,9 @@ public final class KitPvPSword1Rules {
         ALLOWED_ARMOR = Collections.unmodifiableSet(armor);
 
         Set<Material> weapons = EnumSet.of(
-                Material.DIAMOND_SWORD, Material.IRON_SWORD, Material.WOODEN_SWORD, Material.STONE_SWORD,
-                Material.DIAMOND_AXE, Material.IRON_AXE, Material.WOODEN_AXE, Material.STONE_AXE
+                Material.DIAMOND_SWORD, Material.IRON_SWORD, Material.WOODEN_SWORD, Material.STONE_SWORD
         );
-        addIfPresent(weapons, "COPPER_SWORD", "COPPER_AXE");
+        addIfPresent(weapons, "COPPER_SWORD");
         ALLOWED_WEAPONS = Collections.unmodifiableSet(weapons);
     }
 
@@ -75,6 +73,6 @@ public final class KitPvPSword1Rules {
     }
 
     public static String getRequirementsMessage() {
-        return "Allowed: Diamond/Iron/Copper/Leather armor. Diamond/Iron/Copper/Wood/Stone swords & axes. Shield (offhand). No Netherite. No Elytra.";
+        return "Allowed: Diamond/Iron/Copper/Leather armor. Diamond/Iron/Copper/Wood/Stone swords. Shield (offhand). No Netherite. No Elytra. No axes.";
     }
 }
