@@ -34,7 +34,7 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         String message = event.getMessage();
@@ -47,9 +47,6 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         // Check if the flag is set at the player's location
         Flag flag = this.getFlagInstanceAtLocation(player.getLocation(), player);
         if (flag == null) return;
-
-        // Cancel the original event
-        event.setCancelled(true);
 
         // Get the claim for formatting
         Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, null);
@@ -68,46 +65,39 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
             prefix = "[wilderness]";
         }
 
-        // Get the local chat format from config
-        String format = GPFlagsConfig.FORCE_LOCAL_CHAT_FORMAT;
-
-        // Replace custom placeholders first (before PAPI)
-        String formattedMessage = format
-                .replace("%message%", message)
+        // Build format template only — leave the player message as Bukkit %2$s for InteractiveChat
+        final String messageToken = "\0GPFLAGS_MESSAGE\0";
+        String format = GPFlagsConfig.FORCE_LOCAL_CHAT_FORMAT
+                .replace("%message%", messageToken)
                 .replace("%prefix%", prefix)
                 .replace("%displayname%", player.getDisplayName());
 
-        // Replace claim number if available (for custom formats that still use it)
         if (claim != null) {
-            formattedMessage = formattedMessage.replace("%claimnumber%", String.valueOf(claim.getID()));
+            format = format.replace("%claimnumber%", String.valueOf(claim.getID()));
         } else {
-            formattedMessage = formattedMessage.replace("%claimnumber%", "wilderness");
+            format = format.replace("%claimnumber%", "wilderness");
         }
 
-        // Use PlaceholderAPI for all other placeholders
-        formattedMessage = PlaceholderApiHook.addPlaceholders(player, formattedMessage);
+        format = PlaceholderApiHook.addPlaceholders(player, format);
+        format = ChatColor.translateAlternateColorCodes('&', format);
+        // Escape % for String.format, then restore the chat message placeholder
+        format = format.replace("%", "%%").replace(messageToken, "%2$s");
 
-        // Translate color codes
-        formattedMessage = ChatColor.translateAlternateColorCodes('&', formattedMessage);
+        event.setFormat(format);
 
-        // Log to console
-        plugin.getLogger().info(ChatColor.stripColor(formattedMessage));
-
-        // Get nearby players within 320 blocks and send them the message
-        final String finalMessage = formattedMessage;
-        int recipientCount = 0;
+        // Limit recipients to same-world players within 320 blocks (do not cancel/resend)
+        Location playerLoc = player.getLocation();
+        event.getRecipients().clear();
         for (Player recipient : plugin.getServer().getOnlinePlayers()) {
-            if (recipient.getWorld().equals(player.getWorld())) {
-                double distance = recipient.getLocation().distance(player.getLocation());
-                if (distance <= 320) {
-                    recipient.sendMessage(finalMessage);
-                    recipientCount++;
-                }
+            if (recipient.getWorld().equals(player.getWorld())
+                    && recipient.getLocation().distanceSquared(playerLoc) <= 320 * 320) {
+                event.getRecipients().add(recipient);
             }
         }
 
-        // Notify player if no one else heard them
-        if (recipientCount == 1) {
+        plugin.getLogger().info(ChatColor.stripColor(String.format(format, player.getDisplayName(), message)));
+
+        if (event.getRecipients().size() == 1) {
             player.sendMessage("There is no one around to hear you.");
         }
     }
