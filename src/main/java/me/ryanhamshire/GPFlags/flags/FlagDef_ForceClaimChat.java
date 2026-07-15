@@ -34,7 +34,9 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    // HIGH: after Essentials Chat (LOWEST format + NORMAL recipients) so prefix/color stick;
+    // keep event alive with %2$s so InteractiveChat can still process placeholders.
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         String message = event.getMessage();
