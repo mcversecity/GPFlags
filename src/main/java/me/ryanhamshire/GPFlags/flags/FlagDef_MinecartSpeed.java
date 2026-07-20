@@ -17,6 +17,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -30,25 +32,25 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * MinecartSpeed Flag - Allows claim owners to modify minecart speed within their claims
+ * MinecartSpeed Flag - Allows claim owners to modify minecart max speed within their claims
  *
  * Features:
- * - Speed range: 10-500 (representing 0.1x to 5.0x multiplier)
- * - Smooth 20-tick transitions when crossing claim boundaries
- * - Permission system with min/max controls
- * - Only affects ridden minecarts (empty minecarts deferred to Phase 2)
+ * - Speed range: 10-500 (representing 0.1x to 5.0x of vanilla max speed 0.4)
+ * - Uses {@link Minecart#setMaxSpeed(double)} as a physics cap (does not auto-accelerate)
+ * - Smooth 20-tick slowdown only when current velocity exceeds a lower new cap
+ * - Applied on place, mount, and claim boundary crossing
  * - Regular minecarts only (not chest/furnace/hopper variants)
  */
 public class FlagDef_MinecartSpeed extends PlayerMovementFlagDefinition {
 
-    // Tracking map for minecarts currently transitioning between speeds
+    // Tracking map for minecarts currently slowing down to a lower cap
     private final Map<UUID, SpeedTransitionTask> activeTransitions = new HashMap<>();
 
     // Constants
     private static final int MIN_SPEED_VALUE = 10;   // 0.1x speed
     private static final int MAX_SPEED_VALUE = 500;  // 5.0x speed
-    private static final int DEFAULT_SPEED_VALUE = 100; // 1.0x vanilla speed
-    private static final int TRANSITION_TICKS = 20;  // Duration of speed transition
+    private static final double VANILLA_MAX_SPEED = 0.4; // Bukkit default max speed
+    private static final int TRANSITION_TICKS = 20;  // Duration of slowdown transition
     private static final int MAX_CONCURRENT_TRANSITIONS = 50; // Prevent abuse
 
     public FlagDef_MinecartSpeed(FlagManager manager, GPFlags plugin) {
@@ -180,15 +182,52 @@ public class FlagDef_MinecartSpeed extends PlayerMovementFlagDefinition {
     }
 
     /**
-     * Called when a player crosses a claim boundary
-     * Checks if player is riding a minecart and triggers speed transition
+     * Convert a multiplier to absolute Bukkit max speed (vanilla base 0.4).
+     */
+    private double toMaxSpeed(double multiplier) {
+        return VANILLA_MAX_SPEED * multiplier;
+    }
+
+    /**
+     * Apply the claim flag's max speed cap to a minecart (vanilla 0.4 if flag unset).
+     */
+    private void applyMaxSpeed(Minecart minecart, @Nullable Flag flag) {
+        minecart.setMaxSpeed(toMaxSpeed(getSpeedMultiplier(flag)));
+    }
+
+    /**
+     * Apply max speed for the flag at a location, and slow down only if over the new cap.
+     */
+    private void applyFlagAtLocation(Minecart minecart, Location location, @Nullable Player player) {
+        Flag flag = this.getFlagInstanceAtLocation(location, player);
+        double newMaxSpeed = toMaxSpeed(getSpeedMultiplier(flag));
+        minecart.setMaxSpeed(newMaxSpeed);
+        maybeSlowDown(minecart, newMaxSpeed);
+    }
+
+    /**
+     * If current velocity exceeds the new max, start a smooth slowdown. Otherwise cancel any transition.
+     */
+    private void maybeSlowDown(Minecart minecart, double newMaxSpeed) {
+        Vector velocity = minecart.getVelocity();
+        double currentSpeed = velocity.length();
+
+        if (currentSpeed > newMaxSpeed + 0.0001) {
+            startSlowdown(minecart, currentSpeed, newMaxSpeed);
+        } else {
+            cancelTransition(minecart.getUniqueId());
+        }
+    }
+
+    /**
+     * Called when a player crosses a claim boundary while riding a minecart.
+     * Updates max speed; slows velocity only when the new cap is below current speed.
      */
     @Override
     public void onChangeClaim(@NotNull Player player, @Nullable Location from, @NotNull Location to,
                              @Nullable Claim claimFrom, @Nullable Claim claimTo,
                              @Nullable Flag fromFlag, @Nullable Flag toFlag) {
 
-        // Check if player is riding a vehicle
         Entity vehicle = player.getVehicle();
         if (vehicle == null) return;
 
@@ -198,29 +237,48 @@ public class FlagDef_MinecartSpeed extends PlayerMovementFlagDefinition {
         }
 
         Minecart minecart = (Minecart) vehicle;
-
-        // Get speed multipliers for both claims
-        double fromSpeed = getSpeedMultiplier(fromFlag);
-        double toSpeed = getSpeedMultiplier(toFlag);
-
-        // Only transition if speeds are different
-        if (Math.abs(fromSpeed - toSpeed) > 0.001) { // Use epsilon for float comparison
-            startSpeedTransition(minecart, fromSpeed, toSpeed);
-        }
+        double newMaxSpeed = toMaxSpeed(getSpeedMultiplier(toFlag));
+        minecart.setMaxSpeed(newMaxSpeed);
+        maybeSlowDown(minecart, newMaxSpeed);
     }
 
     /**
-     * Start a smooth speed transition for a minecart
+     * Apply max speed when a player mounts a regular minecart (no claim crossing required).
      */
-    private void startSpeedTransition(Minecart minecart, double startMultiplier, double targetMultiplier) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    private void onMount(VehicleEnterEvent event) {
+        if (!(event.getEntered() instanceof Player)) return;
+        if (!(event.getVehicle() instanceof Minecart)) return;
+        if (event.getVehicle().getType() != EntityType.MINECART) return;
+
+        Player player = (Player) event.getEntered();
+        Minecart minecart = (Minecart) event.getVehicle();
+        applyFlagAtLocation(minecart, minecart.getLocation(), player);
+    }
+
+    /**
+     * Apply max speed when a regular minecart is placed in a flagged claim.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    private void onPlace(EntityPlaceEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof Minecart) || entity.getType() != EntityType.MINECART) {
+            return;
+        }
+
+        Minecart minecart = (Minecart) entity;
+        Player player = event.getPlayer();
+        applyFlagAtLocation(minecart, minecart.getLocation(), player);
+    }
+
+    /**
+     * Start a smooth slowdown toward an absolute max speed length.
+     */
+    private void startSlowdown(Minecart minecart, double startSpeed, double targetMaxSpeed) {
         UUID minecartId = minecart.getUniqueId();
 
         // Cancel existing transition if one is in progress
-        SpeedTransitionTask existingTask = activeTransitions.get(minecartId);
-        if (existingTask != null) {
-            existingTask.cancel();
-            activeTransitions.remove(minecartId);
-        }
+        cancelTransition(minecartId);
 
         // Check concurrent task limit to prevent abuse
         if (activeTransitions.size() >= MAX_CONCURRENT_TRANSITIONS) {
@@ -234,10 +292,16 @@ public class FlagDef_MinecartSpeed extends PlayerMovementFlagDefinition {
             }
         }
 
-        // Create and start new transition task
-        SpeedTransitionTask task = new SpeedTransitionTask(minecart, startMultiplier, targetMultiplier);
+        SpeedTransitionTask task = new SpeedTransitionTask(minecart, startSpeed, targetMaxSpeed);
         activeTransitions.put(minecartId, task);
         task.runTaskTimer(plugin, 0L, 1L); // Run every tick
+    }
+
+    private void cancelTransition(UUID minecartId) {
+        SpeedTransitionTask existingTask = activeTransitions.remove(minecartId);
+        if (existingTask != null) {
+            existingTask.cancel();
+        }
     }
 
     /**
@@ -246,12 +310,7 @@ public class FlagDef_MinecartSpeed extends PlayerMovementFlagDefinition {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onMinecartDeath(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Minecart)) return;
-
-        UUID minecartId = event.getEntity().getUniqueId();
-        SpeedTransitionTask task = activeTransitions.remove(minecartId);
-        if (task != null) {
-            task.cancel();
-        }
+        cancelTransition(event.getEntity().getUniqueId());
     }
 
     /**
@@ -259,85 +318,70 @@ public class FlagDef_MinecartSpeed extends PlayerMovementFlagDefinition {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        // Clean up any minecarts in the unloading chunk
         for (Entity entity : event.getChunk().getEntities()) {
             if (entity instanceof Minecart) {
-                UUID minecartId = entity.getUniqueId();
-                SpeedTransitionTask task = activeTransitions.remove(minecartId);
-                if (task != null) {
-                    task.cancel();
-                }
+                cancelTransition(entity.getUniqueId());
             }
         }
     }
 
     /**
-     * Inner class representing a smooth speed transition task
-     * Runs for exactly TRANSITION_TICKS (20 ticks = 1 second)
+     * Smooth slowdown toward an absolute velocity length (never speeds up).
+     * Runs for up to TRANSITION_TICKS (20 ticks = 1 second).
      */
     private class SpeedTransitionTask extends BukkitRunnable {
         private final UUID minecartUUID;
-        private final double startMultiplier;
-        private final double targetMultiplier;
+        private final double startSpeed;
+        private final double targetMaxSpeed;
         private int currentTick = 0;
 
-        public SpeedTransitionTask(Minecart minecart, double startMultiplier, double targetMultiplier) {
+        public SpeedTransitionTask(Minecart minecart, double startSpeed, double targetMaxSpeed) {
             this.minecartUUID = minecart.getUniqueId();
-            this.startMultiplier = startMultiplier;
-            this.targetMultiplier = targetMultiplier;
+            this.startSpeed = startSpeed;
+            this.targetMaxSpeed = targetMaxSpeed;
         }
 
         @Override
         public void run() {
-            // Get minecart entity
             Entity entity = Bukkit.getEntity(minecartUUID);
             if (entity == null || !entity.isValid() || !(entity instanceof Minecart)) {
-                // Minecart no longer exists, cancel and cleanup
                 this.cancel();
                 activeTransitions.remove(minecartUUID);
                 return;
             }
 
             Minecart minecart = (Minecart) entity;
-
-            // Calculate progress (0.0 to 1.0)
             currentTick++;
-            double progress = (double) currentTick / TRANSITION_TICKS;
+            double progress = Math.min(1.0, (double) currentTick / TRANSITION_TICKS);
+            double desiredSpeed = lerp(startSpeed, targetMaxSpeed, progress);
+            applyVelocityLength(minecart, desiredSpeed);
 
-            // Linear interpolation (lerp) between start and target multipliers
-            double currentMultiplier = lerp(startMultiplier, targetMultiplier, progress);
-
-            // Apply the speed multiplier
-            applySpeedMultiplier(minecart, currentMultiplier);
-
-            // Check if transition is complete
-            if (currentTick >= TRANSITION_TICKS) {
+            if (currentTick >= TRANSITION_TICKS || desiredSpeed <= targetMaxSpeed + 0.0001) {
+                // Ensure we land at or below the target
+                applyVelocityLength(minecart, Math.min(minecart.getVelocity().length(), targetMaxSpeed));
                 this.cancel();
                 activeTransitions.remove(minecartUUID);
             }
         }
 
         /**
-         * Instantly complete the transition (used when hitting concurrent task limit)
+         * Instantly complete the slowdown (used when hitting concurrent task limit)
          */
         public void completeInstantly() {
             Entity entity = Bukkit.getEntity(minecartUUID);
             if (entity instanceof Minecart) {
-                applySpeedMultiplier((Minecart) entity, targetMultiplier);
+                applyVelocityLength((Minecart) entity, targetMaxSpeed);
             }
         }
 
-        /**
-         * Linear interpolation between two values
-         */
         private double lerp(double start, double end, double progress) {
             return start + (end - start) * progress;
         }
 
         /**
-         * Apply speed multiplier to a minecart's velocity
+         * Set velocity length while preserving direction. Never increases speed.
          */
-        private void applySpeedMultiplier(Minecart minecart, double multiplier) {
+        private void applyVelocityLength(Minecart minecart, double targetLength) {
             Vector velocity = minecart.getVelocity();
 
             // Don't modify stopped minecarts
@@ -345,30 +389,15 @@ public class FlagDef_MinecartSpeed extends PlayerMovementFlagDefinition {
                 return;
             }
 
-            // Get current direction and speed
-            Vector direction = velocity.clone().normalize();
             double currentSpeed = velocity.length();
-
-            // Estimate base speed (what velocity would be at 1.0x)
-            // If transitioning, we need to reverse the previous multiplier
-            double baseSpeed;
-            if (currentTick == 1) {
-                // First tick: current speed is at startMultiplier
-                baseSpeed = currentSpeed / startMultiplier;
-            } else {
-                // Subsequent ticks: use the base speed we've been working with
-                // Since we're continuously adjusting, just use current/previous multiplier
-                double previousProgress = (double) (currentTick - 1) / TRANSITION_TICKS;
-                double previousMultiplier = lerp(startMultiplier, targetMultiplier, previousProgress);
-                baseSpeed = currentSpeed / previousMultiplier;
+            // Never speed up — only clamp downward toward target
+            double newSpeed = Math.min(currentSpeed, targetLength);
+            if (newSpeed >= currentSpeed - 0.0001) {
+                return;
             }
 
-            // Apply new multiplier
-            double newSpeed = baseSpeed * multiplier;
-
-            // Set new velocity preserving direction
-            Vector newVelocity = direction.multiply(newSpeed);
-            minecart.setVelocity(newVelocity);
+            Vector direction = velocity.clone().normalize();
+            minecart.setVelocity(direction.multiply(newSpeed));
         }
     }
 }
