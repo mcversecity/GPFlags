@@ -406,6 +406,9 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.EnabledAllowSilverfishSpawnCobweb, "Silverfish can now spawn cobwebs in this area.", null);
         this.addDefault(defaults, Messages.DisabledAllowSilverfishSpawnCobweb, "Silverfish can no longer spawn cobwebs in this area.", null);
 
+        this.addDefault(defaults, Messages.EnabledAllowSpawnCobwebs, "Mobs can now spawn cobwebs in this area.", null);
+        this.addDefault(defaults, Messages.DisabledAllowSpawnCobwebs, "Mobs can no longer spawn cobwebs in this area.", null);
+
         this.addDefault(defaults, Messages.EnableNoCropTrampling, "Disabled crop trampling in this area.", null);
         this.addDefault(defaults, Messages.DisableNoCropTrampling, "Enabled crop trampling in this area.", null);
 

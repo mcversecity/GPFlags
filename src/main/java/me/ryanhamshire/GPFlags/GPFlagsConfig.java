@@ -156,6 +156,7 @@ public class GPFlagsConfig {
             this.flagManager.registerFlagDefinition(new FlagDef_AllowEndermanMoveBlocks(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_AllowEndermanSpawnCobweb(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_AllowSilverfishSpawnCobweb(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_AllowSpawnCobwebs(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_NoCoralDeath(this.flagManager, plugin));
 
             FlagDef_NoFlight noFlight = new FlagDef_NoFlight(this.flagManager, plugin);
