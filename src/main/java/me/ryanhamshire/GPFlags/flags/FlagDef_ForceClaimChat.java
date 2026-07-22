@@ -1,5 +1,6 @@
 package me.ryanhamshire.GPFlags.flags;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import me.ryanhamshire.GPFlags.Flag;
 import me.ryanhamshire.GPFlags.FlagManager;
 import me.ryanhamshire.GPFlags.GPFlags;
@@ -11,6 +12,10 @@ import me.ryanhamshire.GPFlags.hooks.PlaceholderApiHook;
 import me.ryanhamshire.GPFlags.util.MessagingUtil;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -19,7 +24,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
+
+    private static final int LOCAL_RADIUS_SQUARED = 320 * 320;
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+
+    /** Players in a ForceClaimChat claim whose message did not start with '!'. Marked at LOWEST before Essentials strips shout. */
+    private final Set<UUID> pendingForceLocal = ConcurrentHashMap.newKeySet();
 
     public FlagDef_ForceClaimChat(FlagManager manager, GPFlags plugin) {
         super(manager, plugin);
@@ -34,43 +49,114 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         }
     }
 
-    // HIGH: after Essentials Chat (LOWEST format + NORMAL recipients) so prefix/color stick;
-    // keep event alive with %2$s so InteractiveChat can still process placeholders.
+    /**
+     * Detect force-local (and ! shout bypass) before Essentials can strip the shout prefix.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerChatMark(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        if (event.getMessage().startsWith("!")) {
+            return;
+        }
+        if (this.getFlagInstanceAtLocation(player.getLocation(), player) == null) {
+            return;
+        }
+        pendingForceLocal.add(player.getUniqueId());
+    }
+
+    /**
+     * Legacy backup: setFormat + recipient filter after Essentials' LOWEST/NORMAL handlers.
+     * Paper display is driven by {@link #onPaperChat}; keep the event alive with %2$s for InteractiveChat.
+     */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        String message = event.getMessage();
-
-        // Bypass local chat with "!" prefix; keep the "!" in the global message
-        if (message.startsWith("!")) {
+        if (!pendingForceLocal.contains(player.getUniqueId())) {
             return;
         }
 
-        // Check if the flag is set at the player's location
-        Flag flag = this.getFlagInstanceAtLocation(player.getLocation(), player);
-        if (flag == null) return;
+        String message = event.getMessage();
+        String format = buildLegacyFormat(player);
+        event.setFormat(format);
 
-        // Get the claim for formatting
-        Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, null);
+        Location playerLoc = player.getLocation();
+        event.getRecipients().clear();
+        for (Player recipient : plugin.getServer().getOnlinePlayers()) {
+            if (isInLocalRange(playerLoc, recipient)) {
+                event.getRecipients().add(recipient);
+            }
+        }
 
-        // Custom prefix replaces the default [%claimnumber%] slot
+        plugin.getLogger().info(ChatColor.stripColor(String.format(format, player.getDisplayName(), message)));
+    }
+
+    /**
+     * Source of truth on Paper: re-filter viewers and set an Adventure ChatRenderer so Essentials'
+     * global [G] renderer does not win the display fight. Does not stringify the message body
+     * so InteractiveChat placeholders stay intact.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPaperChat(AsyncChatEvent event) {
+        Player player = event.getPlayer();
+        if (!pendingForceLocal.remove(player.getUniqueId())) {
+            return;
+        }
+
+        Location playerLoc = player.getLocation();
+        event.viewers().removeIf(audience -> {
+            if (!(audience instanceof Player)) {
+                return false;
+            }
+            return !isInLocalRange(playerLoc, (Player) audience);
+        });
+
+        long playerViewers = 0;
+        for (Audience audience : event.viewers()) {
+            if (audience instanceof Player) {
+                playerViewers++;
+            }
+        }
+        if (playerViewers <= 1) {
+            player.sendMessage("There is no one around to hear you.");
+        }
+
+        final String resolvedTemplate = buildResolvedTemplate(player);
+        event.renderer((source, sourceDisplayName, message, viewer) -> renderLocalFormat(resolvedTemplate, message));
+    }
+
+    /** Cleanup after Paper chat finishes (legacy MONITOR would run before AsyncChatEvent). */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPaperChatCleanup(AsyncChatEvent event) {
+        pendingForceLocal.remove(event.getPlayer().getUniqueId());
+    }
+
+    private static boolean isInLocalRange(Location senderLoc, Player recipient) {
+        return recipient.getWorld().equals(senderLoc.getWorld())
+                && recipient.getLocation().distanceSquared(senderLoc) <= LOCAL_RADIUS_SQUARED;
+    }
+
+    private String resolvePrefix(Player player, @Nullable Claim claim) {
         FlagDefinition prefixDef = this.plugin.getFlagManager().getFlagDefinitionByName("ForceClaimChatPrefix");
         Flag prefixFlag = prefixDef != null
                 ? prefixDef.getFlagInstanceAtLocation(player.getLocation(), player)
                 : null;
-        String prefix;
         if (prefixFlag != null) {
-            prefix = prefixFlag.parameters;
-        } else if (claim != null) {
-            prefix = "[" + claim.getID() + "]";
-        } else {
-            prefix = "[wilderness]";
+            return prefixFlag.parameters;
         }
+        if (claim != null) {
+            return "[" + claim.getID() + "]";
+        }
+        return "[wilderness]";
+    }
 
-        // Build format template only — leave the player message as Bukkit %2$s for InteractiveChat
-        final String messageToken = "\0GPFLAGS_MESSAGE\0";
+    /**
+     * Template with placeholders resolved and &amp; colors translated, still containing %message%.
+     */
+    private String buildResolvedTemplate(Player player) {
+        Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, null);
+        String prefix = resolvePrefix(player, claim);
+
         String format = GPFlagsConfig.FORCE_LOCAL_CHAT_FORMAT
-                .replace("%message%", messageToken)
                 .replace("%prefix%", prefix)
                 .replace("%displayname%", player.getDisplayName());
 
@@ -81,27 +167,30 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         }
 
         format = PlaceholderApiHook.addPlaceholders(player, format);
-        format = ChatColor.translateAlternateColorCodes('&', format);
-        // Escape % for String.format, then restore the chat message placeholder
-        format = format.replace("%", "%%").replace(messageToken, "%2$s");
+        return ChatColor.translateAlternateColorCodes('&', format);
+    }
 
-        event.setFormat(format);
+    private String buildLegacyFormat(Player player) {
+        final String messageToken = "\0GPFLAGS_MESSAGE\0";
+        String format = buildResolvedTemplate(player).replace("%message%", messageToken);
+        return format.replace("%", "%%").replace(messageToken, "%2$s");
+    }
 
-        // Limit recipients to same-world players within 320 blocks (do not cancel/resend)
-        Location playerLoc = player.getLocation();
-        event.getRecipients().clear();
-        for (Player recipient : plugin.getServer().getOnlinePlayers()) {
-            if (recipient.getWorld().equals(player.getWorld())
-                    && recipient.getLocation().distanceSquared(playerLoc) <= 320 * 320) {
-                event.getRecipients().add(recipient);
-            }
+    private static Component renderLocalFormat(String resolvedTemplate, Component message) {
+        String[] parts = resolvedTemplate.split("%message%", 2);
+        String before = parts[0];
+        String after = parts.length > 1 ? parts[1] : "";
+
+        Component beforeComp = LEGACY.deserialize(before);
+        Component afterComp = after.isEmpty() ? Component.empty() : LEGACY.deserialize(after);
+
+        String lastColors = ChatColor.getLastColors(before);
+        if (!lastColors.isEmpty()) {
+            Style style = LEGACY.deserialize(lastColors + "x").style();
+            message = message.applyFallbackStyle(style);
         }
 
-        plugin.getLogger().info(ChatColor.stripColor(String.format(format, player.getDisplayName(), message)));
-
-        if (event.getRecipients().size() == 1) {
-            player.sendMessage("There is no one around to hear you.");
-        }
+        return beforeComp.append(message).append(afterComp);
     }
 
     @Override
