@@ -7,7 +7,6 @@ import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.PlayerData;
 import org.bukkit.*;
-import org.bukkit.block.Biome;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
@@ -81,6 +80,22 @@ public class Util {
         }
     }
 
+    public static boolean canConfigureClaimFlags(Player player, Claim claim, FlagDefinition def) {
+        if (claim == null) return false;
+        if (canEdit(player, claim)) return true;
+        if (!canManage(claim, player)) return false;
+        if (def.getName().equalsIgnoreCase(FlagManager.CLAIM_MANAGER_SET_FLAGS_FLAG)) return false;
+        return allowsClaimManagersToSetFlags(claim);
+    }
+
+    public static boolean allowsClaimManagersToSetFlags(Claim claim) {
+        if (claim == null) return false;
+        Location location = claim.getLesserBoundaryCorner();
+        if (location == null || location.getWorld() == null) return false;
+        return GPFlags.getInstance().getFlagManager().getEffectiveFlag(
+                FlagManager.CLAIM_MANAGER_SET_FLAGS_FLAG, claim, location.getWorld()) != null;
+    }
+
     public static List<String> flagTab(CommandSender sender, String arg) {
         List<String> flags = new ArrayList<>();
         GPFlags.getInstance().getFlagManager().getFlagDefinitions().forEach(flagDefinition -> {
@@ -142,16 +157,6 @@ public class Util {
                     }
                 }
                 return StringUtil.copyPartialMatches(args[1], entityTypes, new ArrayList<>());
-
-            case "changebiome":
-                ArrayList<String> biomes = new ArrayList<>();
-                for (Biome biome : Biome.values()) {
-                    if (sender.hasPermission("gpflags.flag.changebiome." + biome)) {
-                        biomes.add(biome.toString());
-                    }
-                }
-                biomes.sort(String.CASE_INSENSITIVE_ORDER);
-                return StringUtil.copyPartialMatches(args[1], biomes, new ArrayList<>());
 
             case "noopendoors":
                 if (args.length != 2) return null;

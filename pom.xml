@@ -6,7 +6,7 @@
 
     <groupId>me.ryanhamshire</groupId>
     <artifactId>GPFlags</artifactId>
-    <version>5.13.8.1</version>
+    <version>5.13.9.1</version>
 
     <properties>
 <!--        this is the real java version used for compilation-->
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.purpurmc.purpur</groupId>
             <artifactId>purpur-api</artifactId>
-            <version>1.21.8-R0.1-SNAPSHOT</version>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
