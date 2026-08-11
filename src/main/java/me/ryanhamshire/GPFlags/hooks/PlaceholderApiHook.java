@@ -14,6 +14,7 @@ import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.PlayerData;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -126,13 +127,11 @@ public class PlaceholderApiHook extends PlaceholderExpansion {
 
             default:
                 if (identifier.equals("claimdescription")) {
-            PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
-            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
-            if (claim == null) return "";
-            World world = player.getWorld();
-            String desc = ClaimDescriptionUtil.getEffectiveDescription(plugin.getFlagManager(), claim, world);
-            return desc != null ? desc : "";
-        }
+                    if (claim == null) return "";
+                    World world = player.getWorld();
+                    String desc = ClaimDescriptionUtil.getEffectiveDescription(plugin.getFlagManager(), claim, world);
+                    return desc != null ? desc : "";
+                }
         return null;}
     }
 }
