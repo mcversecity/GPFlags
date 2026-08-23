@@ -8,6 +8,7 @@ import me.ryanhamshire.GPFlags.GPFlagsConfig;
 import me.ryanhamshire.GPFlags.MessageSpecifier;
 import me.ryanhamshire.GPFlags.Messages;
 import me.ryanhamshire.GPFlags.TextMode;
+import me.ryanhamshire.GPFlags.hooks.EssentialsChatHook;
 import me.ryanhamshire.GPFlags.hooks.PlaceholderApiHook;
 import me.ryanhamshire.GPFlags.util.MessagingUtil;
 import me.ryanhamshire.GriefPrevention.Claim;
@@ -35,9 +36,20 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
 
     /** Players in a ForceClaimChat claim whose message did not start with '!'. Marked at LOWEST before Essentials strips shout. */
     private final Set<UUID> pendingForceLocal = ConcurrentHashMap.newKeySet();
+    /** Players whose Essentials LocalChatEvent we cancelled so GPFlags can send the lonely notice. */
+    private final Set<UUID> suppressedEssentialsLonely = ConcurrentHashMap.newKeySet();
 
     public FlagDef_ForceClaimChat(FlagManager manager, GPFlags plugin) {
         super(manager, plugin);
+        EssentialsChatHook.register(plugin, this);
+    }
+
+    public boolean isPendingForceLocal(UUID uuid) {
+        return pendingForceLocal.contains(uuid);
+    }
+
+    public void markSuppressedEssentialsLonely(UUID uuid) {
+        suppressedEssentialsLonely.add(uuid);
     }
 
     @Override
@@ -68,11 +80,18 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
      * Legacy backup: setFormat + recipient filter after Essentials' LOWEST/NORMAL handlers.
      * Paper display is driven by {@link #onPaperChat}; keep the event alive with %2$s for InteractiveChat.
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        if (!pendingForceLocal.contains(player.getUniqueId())) {
+        UUID uuid = player.getUniqueId();
+        if (!pendingForceLocal.contains(uuid)) {
             return;
+        }
+        if (event.isCancelled()) {
+            if (!suppressedEssentialsLonely.contains(uuid)) {
+                return;
+            }
+            event.setCancelled(false);
         }
 
         String message = event.getMessage();
@@ -95,11 +114,19 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
      * global [G] renderer does not win the display fight. Does not stringify the message body
      * so InteractiveChat placeholders stay intact.
      */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onPaperChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        if (!pendingForceLocal.remove(player.getUniqueId())) {
+        UUID uuid = player.getUniqueId();
+        if (!pendingForceLocal.remove(uuid)) {
             return;
+        }
+        boolean suppressed = suppressedEssentialsLonely.remove(uuid);
+        if (event.isCancelled()) {
+            if (!suppressed) {
+                return;
+            }
+            event.setCancelled(false);
         }
 
         Location playerLoc = player.getLocation();
@@ -117,7 +144,7 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
             }
         }
         if (playerViewers <= 1) {
-            player.sendMessage("There is no one around to hear you.");
+            MessagingUtil.sendMessage(player, plugin.getFlagsDataStore().getMessage(Messages.ForceClaimChatNoOneAround));
         }
 
         final String resolvedTemplate = buildResolvedTemplate(player);
@@ -127,7 +154,9 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
     /** Cleanup after Paper chat finishes (legacy MONITOR would run before AsyncChatEvent). */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPaperChatCleanup(AsyncChatEvent event) {
-        pendingForceLocal.remove(event.getPlayer().getUniqueId());
+        UUID uuid = event.getPlayer().getUniqueId();
+        pendingForceLocal.remove(uuid);
+        suppressedEssentialsLonely.remove(uuid);
     }
 
     private static boolean isInLocalRange(Location senderLoc, Player recipient) {

@@ -436,6 +436,7 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.EnabledForceClaimChat, "Local chat is now enabled in this claim. Messages will only be sent to players within 320 blocks. Use '!' prefix to bypass.", null);
         this.addDefault(defaults, Messages.DisabledForceClaimChat, "Local chat is now disabled in this claim.", null);
         this.addDefault(defaults, Messages.ForceClaimChatNotification, "<yellow>Local chat is active in this claim. Messages are sent to players within 320 blocks. Use <white>!<yellow> to send globally.", null);
+        this.addDefault(defaults, Messages.ForceClaimChatNoOneAround, "There is no one around to hear you. Prefix with <white>!<reset> to shout", null);
         this.addDefault(defaults, Messages.SetForceClaimChatPrefix, "Local chat prefix set to: <aqua>{0}", "0: prefix");
         this.addDefault(defaults, Messages.UnsetForceClaimChatPrefix, "Local chat prefix reset to the default claim number.", null);
 

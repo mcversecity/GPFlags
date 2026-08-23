@@ -313,6 +313,7 @@ public enum Messages {
     EnabledForceClaimChat,
     DisabledForceClaimChat,
     ForceClaimChatNotification,
+    ForceClaimChatNoOneAround,
     SetForceClaimChatPrefix,
     UnsetForceClaimChatPrefix,
 
