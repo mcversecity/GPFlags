@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
 
-    private static final int LOCAL_RADIUS_SQUARED = 320 * 320;
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     /** Players in a ForceClaimChat claim whose message did not start with '!'. Marked at LOWEST before Essentials strips shout. */
@@ -56,8 +55,8 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
     public void onChangeClaim(Player player, Location lastLocation, Location to, Claim claimFrom, Claim claimTo, @Nullable Flag flagFrom, @Nullable Flag flagTo) {
         // Notify player when entering a claim with ForceClaimChat enabled
         if (flagTo != null && (flagFrom == null || !flagFrom.equals(flagTo))) {
-            String message = plugin.getFlagsDataStore().getMessage(Messages.ForceClaimChatNotification);
-            MessagingUtil.sendMessage(player, TextMode.Info + message);
+            String radius = String.valueOf(getEffectiveLocalRadius(to, player));
+            MessagingUtil.sendMessage(player, TextMode.Info, Messages.ForceClaimChatNotification, radius);
         }
     }
 
@@ -99,9 +98,10 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         event.setFormat(format);
 
         Location playerLoc = player.getLocation();
+        int radius = getEffectiveLocalRadius(playerLoc, player);
         event.getRecipients().clear();
         for (Player recipient : plugin.getServer().getOnlinePlayers()) {
-            if (isInLocalRange(playerLoc, recipient)) {
+            if (isInLocalRange(playerLoc, recipient, radius)) {
                 event.getRecipients().add(recipient);
             }
         }
@@ -130,11 +130,12 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         }
 
         Location playerLoc = player.getLocation();
+        int radius = getEffectiveLocalRadius(playerLoc, player);
         event.viewers().removeIf(audience -> {
             if (!(audience instanceof Player)) {
                 return false;
             }
-            return !isInLocalRange(playerLoc, (Player) audience);
+            return !isInLocalRange(playerLoc, (Player) audience, radius);
         });
 
         long playerViewers = 0;
@@ -159,9 +160,34 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
         suppressedEssentialsLonely.remove(uuid);
     }
 
-    private static boolean isInLocalRange(Location senderLoc, Player recipient) {
+    public int getEffectiveLocalRadius(Location location, @Nullable Player player) {
+        FlagDefinition radiusDef = this.plugin.getFlagManager().getFlagDefinitionByName("ForceClaimChatRadius");
+        Flag radiusFlag = radiusDef != null ? radiusDef.getFlagInstanceAtLocation(location, player) : null;
+        if (radiusFlag == null || radiusFlag.parameters == null || radiusFlag.parameters.isEmpty()) {
+            return FlagDef_ForceClaimChatRadius.MAX_RADIUS;
+        }
+        try {
+            int parsed = Integer.parseInt(radiusFlag.parameters.trim());
+            if (parsed < FlagDef_ForceClaimChatRadius.MIN_RADIUS) {
+                return FlagDef_ForceClaimChatRadius.MIN_RADIUS;
+            }
+            if (parsed > FlagDef_ForceClaimChatRadius.MAX_RADIUS) {
+                return FlagDef_ForceClaimChatRadius.MAX_RADIUS;
+            }
+            return parsed;
+        } catch (NumberFormatException ignored) {
+            return FlagDef_ForceClaimChatRadius.MAX_RADIUS;
+        }
+    }
+
+    public boolean isInLocalRange(Location senderLoc, Player recipient, int radius) {
+        int radiusSquared = radius * radius;
         return recipient.getWorld().equals(senderLoc.getWorld())
-                && recipient.getLocation().distanceSquared(senderLoc) <= LOCAL_RADIUS_SQUARED;
+                && recipient.getLocation().distanceSquared(senderLoc) <= radiusSquared;
+    }
+
+    public boolean isInLocalRange(Player sender, Player recipient) {
+        return isInLocalRange(sender.getLocation(), recipient, getEffectiveLocalRadius(sender.getLocation(), sender));
     }
 
     private String resolvePrefix(Player player, @Nullable Claim claim) {
@@ -229,7 +255,8 @@ public class FlagDef_ForceClaimChat extends PlayerMovementFlagDefinition {
 
     @Override
     public MessageSpecifier getSetMessage(String parameters) {
-        return new MessageSpecifier(Messages.EnabledForceClaimChat);
+        return new MessageSpecifier(Messages.EnabledForceClaimChat,
+                String.valueOf(FlagDef_ForceClaimChatRadius.MAX_RADIUS));
     }
 
     @Override

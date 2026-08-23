@@ -15,7 +15,7 @@ import java.util.HashMap;
 public class FlagsDataStore {
 
     public static int PRIOR_CONFIG_VERSION = 0;
-    public static int CONFIG_VERSION = 1;
+    public static int CONFIG_VERSION = 2;
     private final static String dataLayerFolderPath = "plugins" + File.separator + "GPFlags";
     final static String configFilePath = dataLayerFolderPath + File.separator + "config.yml";
     final static String messagesFilePath = dataLayerFolderPath + File.separator + "messages.yml";
@@ -433,12 +433,15 @@ public class FlagsDataStore {
         this.addDefault(defaults, Messages.EnabledRestoreGrazedGrass, "Grass will now immediiately regrow after being grazed by sheep.", null);
         this.addDefault(defaults, Messages.DisabledRestoreGrazedGrass, "Grass will no longer immediately regrow after being grazed by sheep.", null);
 
-        this.addDefault(defaults, Messages.EnabledForceClaimChat, "Local chat is now enabled in this claim. Messages will only be sent to players within 320 blocks. Use '!' prefix to bypass.", null);
+        this.addDefault(defaults, Messages.EnabledForceClaimChat, "Local chat is now enabled in this claim. Messages will only be sent to players within {0} blocks. Use '!' prefix to bypass.", "0: radius");
         this.addDefault(defaults, Messages.DisabledForceClaimChat, "Local chat is now disabled in this claim.", null);
-        this.addDefault(defaults, Messages.ForceClaimChatNotification, "<yellow>Local chat is active in this claim. Messages are sent to players within 320 blocks. Use <white>!<yellow> to send globally.", null);
+        this.addDefault(defaults, Messages.ForceClaimChatNotification, "<yellow>Local chat is active in this claim. Messages are sent to players within {0} blocks. Use <white>!<yellow> to send globally.", "0: radius");
         this.addDefault(defaults, Messages.ForceClaimChatNoOneAround, "There is no one around to hear you. Prefix with <white>!<reset> to shout", null);
         this.addDefault(defaults, Messages.SetForceClaimChatPrefix, "Local chat prefix set to: <aqua>{0}", "0: prefix");
         this.addDefault(defaults, Messages.UnsetForceClaimChatPrefix, "Local chat prefix reset to the default claim number.", null);
+        this.addDefault(defaults, Messages.SetForceClaimChatRadius, "Local chat radius set to <aqua>{0} <reset>blocks.", "0: radius");
+        this.addDefault(defaults, Messages.UnsetForceClaimChatRadius, "Local chat radius reset to the default (320 blocks).", null);
+        this.addDefault(defaults, Messages.ForceClaimChatRadiusInvalid, "Radius must be a whole number between {0} and {1}.", "0: min 1: max");
 
         this.addDefault(defaults, Messages.EnableKitPvPSword1, "Kit PvP (Sword 1) is now enforced in this claim.", null);
         this.addDefault(defaults, Messages.DisableKitPvPSword1, "Kit PvP (Sword 1) is no longer enforced in this claim.", null);
@@ -473,6 +476,10 @@ public class FlagsDataStore {
             if (PRIOR_CONFIG_VERSION < 1) {
                 this.messages[messageID.ordinal()] = MessagingUtil.reserialize(this.messages[messageID.ordinal()]);
             }
+            if (PRIOR_CONFIG_VERSION < 2) {
+                this.messages[messageID.ordinal()] = migrateForceClaimChatRadiusPlaceholder(
+                        messageID, this.messages[messageID.ordinal()]);
+            }
             config.set("Messages." + messageID.name() + ".Text", this.messages[messageID.ordinal()]);
 
             if (messageData.notes != null) {
@@ -492,6 +499,21 @@ public class FlagsDataStore {
 
         defaults.clear();
         System.gc();
+    }
+
+    /**
+     * Replace stock ForceClaimChat messages that hardcode 320 with a {0} placeholder.
+     */
+    private String migrateForceClaimChatRadiusPlaceholder(Messages messageID, String current) {
+        if (messageID == Messages.EnabledForceClaimChat
+                && "Local chat is now enabled in this claim. Messages will only be sent to players within 320 blocks. Use '!' prefix to bypass.".equals(current)) {
+            return "Local chat is now enabled in this claim. Messages will only be sent to players within {0} blocks. Use '!' prefix to bypass.";
+        }
+        if (messageID == Messages.ForceClaimChatNotification
+                && "<yellow>Local chat is active in this claim. Messages are sent to players within 320 blocks. Use <white>!<yellow> to send globally.".equals(current)) {
+            return "<yellow>Local chat is active in this claim. Messages are sent to players within {0} blocks. Use <white>!<yellow> to send globally.";
+        }
+        return current;
     }
 
     private void addDefault(HashMap<String, CustomizableMessage> defaults, Messages id, String text, String notes) {

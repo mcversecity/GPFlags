@@ -13,8 +13,10 @@ import java.util.Collection;
 import java.util.UUID;
 
 /**
- * Optional EssentialsX Chat hook. Cancels lonely {@code LocalChatEvent}s when ForceClaimChat
- * already owns the message so Essentials does not send {@code localNoOne}.
+ * Optional EssentialsX Chat hook. When ForceClaimChat owns a message, recipients are limited to
+ * the GPFlags local radius (default 320, or ForceClaimChatRadius). Lonely sends are cancelled so
+ * Essentials does not emit {@code localNoOne}; GPFlags then uncancels Bukkit/Paper chat and sends
+ * {@code ForceClaimChatNoOneAround} after its own viewer filter.
  */
 public final class EssentialsChatHook {
 
@@ -47,12 +49,24 @@ public final class EssentialsChatHook {
                 if (!flag.isPendingForceLocal(uuid)) {
                     return;
                 }
-                Collection<?> recipients = (Collection<?>) getRecipients.invoke(event);
-                if (recipients.size() >= 2) {
-                    return;
+                @SuppressWarnings("unchecked")
+                Collection<Object> recipients = (Collection<Object>) getRecipients.invoke(event);
+                int inRange = 0;
+                for (Object recipient : recipients) {
+                    if (!(recipient instanceof Player) || flag.isInLocalRange(player, (Player) recipient)) {
+                        inRange++;
+                    }
                 }
-                setCancelled.invoke(event, true);
-                flag.markSuppressedEssentialsLonely(uuid);
+                try {
+                    recipients.removeIf(recipient ->
+                            recipient instanceof Player && !flag.isInLocalRange(player, (Player) recipient));
+                } catch (UnsupportedOperationException | ClassCastException ignored) {
+                }
+                // Lonely after GPFlags radius, or extras remain on an immutable Essentials list
+                if (inRange < 2 || recipients.size() > inRange) {
+                    setCancelled.invoke(event, true);
+                    flag.markSuppressedEssentialsLonely(uuid);
+                }
             } catch (ReflectiveOperationException ignored) {
             }
         };

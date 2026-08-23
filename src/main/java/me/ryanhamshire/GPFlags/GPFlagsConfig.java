@@ -225,6 +225,7 @@ public class GPFlagsConfig {
             this.flagManager.registerFlagDefinition(new FlagDef_RestoreGrazedGrass(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_ForceClaimChat(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_ForceClaimChatPrefix(this.flagManager, plugin));
+            this.flagManager.registerFlagDefinition(new FlagDef_ForceClaimChatRadius(this.flagManager, plugin));
             this.flagManager.registerFlagDefinition(new FlagDef_KitPvPSword1(this.flagManager, plugin));
 
             try {

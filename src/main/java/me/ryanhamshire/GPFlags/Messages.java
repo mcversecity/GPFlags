@@ -316,6 +316,9 @@ public enum Messages {
     ForceClaimChatNoOneAround,
     SetForceClaimChatPrefix,
     UnsetForceClaimChatPrefix,
+    SetForceClaimChatRadius,
+    UnsetForceClaimChatRadius,
+    ForceClaimChatRadiusInvalid,
 
     EnableKitPvPSword1,
     DisableKitPvPSword1,
