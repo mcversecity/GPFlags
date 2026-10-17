@@ -12,8 +12,7 @@
 <!--        this is the real java version used for compilation-->
 <!--        the mc server must have a java version equal or higher than this-->
 <!--        the intelliJ project version is just used for linting-->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--This is used to show the build number for jenkins.-->
         <!--suppress UnresolvedMavenProperty -->
@@ -35,8 +34,8 @@
             <url>https://jitpack.io</url>
         </repository>
         <repository>
-            <id>purpur</id>
-            <url>https://repo.purpurmc.org/snapshots</url>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
             <!-- MythicMobs -->
@@ -55,9 +54,9 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>org.purpurmc.purpur</groupId>
-            <artifactId>purpur-api</artifactId>
-            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>26.2.build.121-stable</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -195,9 +194,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.1</version>
                 <configuration>
-                    <source>9</source>
-                    <target>9</target>
+                    <release>25</release>
                 </configuration>
             </plugin>
         </plugins>
